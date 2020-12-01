@@ -1,0 +1,6 @@
+authors = "alisdair sullivan <alisdairsullivan@gmail.com>"
+name = "aoc2020"
+uuid = "dfa3a98c-16d1-4a9b-a734-c08256042c63"
+version = "1.0.0"
+
+[deps]

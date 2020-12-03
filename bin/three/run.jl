@@ -27,7 +27,7 @@ function solve(map, rx, ry, w, h)
         nx = mod1(pos.x + rx, w)
         ny = pos.y + ry
         pos = Point(nx, ny)
-        if !isempty(intersect(map, Set([pos])))
+        if in(pos, map)
             hits += 1
         end
     end

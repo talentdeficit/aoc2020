@@ -16,16 +16,13 @@ function validated(passport)
   hcl = passport["hcl"]
   ecl = passport["ecl"]
   pid = passport["pid"]
-  if (1920 > byr) ||
-     (byr > 2002) ||
-     (2010 > iyr) ||
-     (iyr > 2020) ||
-     (2020 > eyr) ||
-     (eyr > 2030) ||
+  if (1920 > byr) || (byr > 2002) ||
+     (2010 > iyr) || (iyr > 2020) ||
+     (2020 > eyr) || (eyr > 2030) ||
      !occursin(r"^(1[5-8][0-9]|19[0-3])(cm)$|^(59|6[0-9]|7[0-6])(in)$", hgt) ||
      !occursin(r"^#([0-9]|[a-f]){6}$", hcl) ||
      !(ecl in ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]) ||
-     length(pid) != 9
+     !occursin(r"^[0-9]{9}$", pid)
     return false
   end
 

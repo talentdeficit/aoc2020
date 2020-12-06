@@ -1,48 +1,33 @@
 using DelimitedFiles
 
 input = joinpath(@__DIR__, "input")
-raw = readdlm(input, String)
+map = readdlm(input, String)
 
-struct Point
-    x::Int64
-    y::Int64
+function solve(map, slope, bounds)
+  hits = 0
+  pos = CartesianIndex(1, 1)
+  pos += slope
+  
+  while pos[1] <= bounds[1]
+    x = pos[2]
+    y = pos[1]
+    hits += (map[y][x] == '#' ? 1 : 0)
+    pos += slope
+    pos[2] > bounds[2] && (pos -= CartesianIndex(0, bounds[2]))
+  end
+  return hits
 end
 
-function trees(map)
-    coords = Set{Point}()
-    for i = 1:length(map)
-        for j = 1:length(map[i])
-            if map[i][j] == '#'
-                push!(coords, Point(j, i))
-            end
-        end
-    end
-    return coords
-end
+const bounds = CartesianIndex(length(map), length(map[1]))
 
-function solve(map, rx, ry, w, h)
-    hits = 0
-    pos = Point(1, 1)
-    for i = 1:(h - 1)
-        nx = mod1(pos.x + rx, w)
-        ny = pos.y + ry
-        pos = Point(nx, ny)
-        if in(pos, map)
-            hits += 1
-        end
-    end
-    return hits
-end
+p1 = solve(map, CartesianIndex(1, 3), bounds)
 
-const w = length(raw[1])
-const h = length(raw)
+const slopes = (CartesianIndex(1,1), CartesianIndex(1,3), CartesianIndex(1,5), CartesianIndex(1,7), CartesianIndex(2,1))
 
-map = trees(raw)
-p1 = solve(map, 3, 1, w, h)
+p2 = prod(solve(map, slope, bounds) for slope in slopes)
 
-slopes = ((1,1), (3,1), (5,1), (7,1), (1,2))
-
-p2 = prod(solve(map, rx, ry, w, h) for (rx, ry) in slopes)
+@assert(p1 == 299)
+@assert(p2 == 3621285278)
 
 println("-----------------------------------------------------------------------")
 println("toboggan trajectory -- part one :: $p1")

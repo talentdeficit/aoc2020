@@ -1,10 +1,7 @@
-.PHONY: current install test run
+.PHONY: run install
 
-current:
-	julia --project=@. bin/five/run.jl
+run:
+	julia --project=@. bin/$(day)/run.jl
 
 install:
 	julia --project=@. -e 'using Pkg; Pkg.instantiate()'
-
-test:
-	julia --project=@. test/runtests.jl

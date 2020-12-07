@@ -7,8 +7,8 @@ struct Rule
   quantity
 end
 
-rcontainer = r"^([^ ]+ [^ ]+) bags contain "
-rbags = r"(\d+) ([^ ]+ [^ ]+)"
+rcontainer = r"^([a-z]+ [a-z]+) bags contain "
+rbags = r"(\d+) ([a-z]+ [a-z]+)"
 
 function parserule(rule)
   color = match(rcontainer, rule).captures[1]

@@ -15,34 +15,34 @@ validators = Dict(
 )
 
 function completed(passport)
-  ks = keys(passport)
-  issubset(req, ks)
+    ks = keys(passport)
+    issubset(req, ks)
 end
 
 function validated(passport)
-  ks = collect(keys(passport))
-  !(false in map(k -> validators[k](passport[k]), ks))
+    ks = collect(keys(passport))
+    !(false in map(k -> validators[k](passport[k]), ks))
 end
 
 function col(entries)
-  acc = []
-  curr = []
-  for entry in entries
-    if entry == ""
-      push!(acc, Dict(curr))
-      curr = []
-    else
-      kvs = split(entry, " ")
-      attrs = (split(ks, ":") for ks in kvs)
-      append!(curr, attrs)
+    acc = []
+    curr = []
+    for entry in entries
+        if entry == ""
+            push!(acc, Dict(curr))
+            curr = []
+        else
+            kvs = split(entry, " ")
+            attrs = (split(ks, ":") for ks in kvs)
+            append!(curr, attrs)
+        end
     end
-  end
 
-  if !isempty(curr)
-    push!(acc, Dict(curr))
-  end
+    if !isempty(curr)
+        push!(acc, Dict(curr))
+    end
 
-  return acc
+    return acc
 end
 
 passports = col(entries)

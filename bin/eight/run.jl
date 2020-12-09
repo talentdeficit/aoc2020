@@ -3,83 +3,104 @@ using Test, Match
 input = joinpath(@__DIR__, "input")
 program = readlines(input)
 
+struct Op
+    code::String
+    value::Int
+end
+
 function parse_program(p)
     return map(parse_op, p)
 end
 
 function parse_op(op)
-    return Pair(op[1:3], parse(Int, op[5:end]))
-
+    code = op[1:3]
+    val = parse(Int, op[5:end])
+    return Op(code, val)
 end
 
-function run(program)
-    @show(length(program))
+function run(program, ptr = 1)
     acc = 0
-    int = 1
-    exec = Set{Int}()
-    while !(int in exec) && int <= length(program)
-        (op, value) = program[int]
-        push!(exec, int)
-        @match op begin
-            "acc" => begin acc += value; int += 1 end
-            "jmp" => begin int += value end
-            "nop" => begin int += 1 end
+    visited = Set{Int}()
+    bound = length(program)
+    while !(ptr in visited) && ptr > 0 && ptr <= bound
+        op = program[ptr]
+        code = op.code
+        val = op.value
+        push!(visited, ptr)
+        @match code begin
+            "acc" => begin acc += val; ptr += 1 end
+            "jmp" => begin ptr += val end
+            "nop" => begin ptr += 1 end
         end
     end
-    fault = int <= length(program) ? true : false
-    return Pair(acc, fault)
+    complete = ptr == length(program) + 1
+    return [complete, acc, visited]
 end
 
-function mutate(program, idx)
-    instruction = program[idx]
-    dup = copy(program)
-    if instruction.first == "jmp"
-        dup[idx] = Pair("nop", instruction.second)
-        return dup
-    elseif instruction.first == "nop"
-        dup[idx] = Pair("jmp", instruction.second)
-        return dup
+function mutate(program, visited)
+    winning = Set{Int}()
+    losing = Set{Int}()
+    for i in 1:length(program)
+        res = run(program, i)
+        res[1] ? push!(winning, i) : push!(losing, i)
     end
-    return dup
+    for i in visited
+        op = program[i]
+        if op.code == "jmp"
+            if i + 1 in winning
+                new = Op("nop", op.value)
+                dup = copy(program)
+                dup[i] = new
+                return dup
+            end
+        elseif op.code == "nop"
+            if i + op.value in winning
+                new = Op("jmp", op.value)
+                dup = copy(program)
+                dup[i] = new
+                return dup
+            end
+        end 
+    end
 end
 
 prog = parse_program(program)
-res = run(prog)
+r1 = run(prog)
 
-p1 = res.first
+p1 = r1[2]
 
-mutants = map(x -> mutate(prog, x), 1:length(prog))
-
-p2 = 0
-for mutant in mutants
-    r = run(mutant)
-    if r.second == true
-        global p2 = r.first
-        break
-    end
-end
+mutant = mutate(prog, r1[3])
+r2 = run(mutant)
+p2 = r2[2]
 
 @assert(p1 == 1489)
 @assert(p2 == 1539)
 
 
+sample = [
+    "nop +0",
+    "acc +1",
+    "jmp +4",
+    "acc +3",
+    "jmp -3",
+    "acc -99",
+    "acc +1",
+    "jmp -4",
+    "acc +6"
+]
 
-t = parse_program([
-"nop +0",
-"acc +1",
-"jmp +4",
-"acc +3",
-"jmp -3",
-"acc -99",
-"acc +1",
-"jmp -4",
-"acc +6"
-])
+t = parse_program(sample)
 r = run(t)
+m = mutate(t, r[3])
+v = run(m)
+
+@test r[2] == 5
+@test r[1] == false
+
+@test v[2] == 8
+@test v[1] == true
 
 
-@test r.first == 5
-@test r.second == false
 
 println("-----------------------------------------------------------------------")
 println("handheld halting -- part one :: $p1")

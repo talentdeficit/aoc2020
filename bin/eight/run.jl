@@ -18,15 +18,15 @@ function parse_op(op)
     return Op(code, val)
 end
 
-function run(program, ptr = 1)
+function run(program, ptr = 1, visited = Set{Int}())
     acc = 0
-    visited = Set{Int}()
+    v = copy(visited)
     bound = length(program)
-    while !(ptr in visited) && ptr > 0 && ptr <= bound
+    while !(ptr in v) && ptr > 0 && ptr <= bound
         op = program[ptr]
         code = op.code
         val = op.value
-        push!(visited, ptr)
+        push!(v, ptr)
         @match code begin
             "acc" => begin acc += val; ptr += 1 end
             "jmp" => begin ptr += val end
@@ -34,15 +34,17 @@ function run(program, ptr = 1)
         end
     end
     complete = ptr == length(program) + 1
-    return [complete, acc, visited]
+    return [complete, acc, v]
 end
 
 function mutate(program, visited)
     winning = Set{Int}()
     losing = Set{Int}()
     for i in 1:length(program)
-        res = run(program, i)
-        res[1] ? push!(winning, i) : push!(losing, i)
+        if !(i in union(winning, losing))
+            res = run(program, i)
+            res[1] ? union!(winning, res[3]) : union!(losing, res[3])
+        end
     end
     for i in visited
         op = program[i]

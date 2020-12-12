@@ -3,100 +3,63 @@ using Match
 input = joinpath(@__DIR__, "input")
 cmds = readlines(input)
 
+@enum Opmode direct waypoint
+
 mutable struct Ship
-    waypoint::CartesianIndex
-    orientation::Array{CartesianIndex,1}
-    location::CartesianIndex
+    waypoint::Array{Int,1}
+    location::Array{Int,1}
+    opmode::Opmode
 end
 
-function move!(ship, commands, movementfn)
+const rturn = [0 -1 ; 1 0]
+const lturn = [0 1 ; -1 0]
+
+function move!(ship, commands)
     for cmd in commands
         instruction = cmd[1:1]
         value = parse(Int, cmd[2:end])
-        movementfn(ship, instruction, value)
+        move!(ship, instruction, value)
     end
 end
 
-function direct!(ship::Ship, instruction::String, value::Int)
+function move!(ship::Ship, instruction::String, value::Int)
     @match instruction begin
-        "N" => begin ship.location += CartesianIndex(0, value) end
-        "S" => begin ship.location += CartesianIndex(0, -1 * value) end
-        "W" => begin ship.location += CartesianIndex(value, 0) end
-        "E" => begin ship.location += CartesianIndex(-1 * value, 0) end
-        "L" => begin
-            for steps in 1:(value / 90)
-                reverse!(ship.orientation)
-                prepend!(ship.orientation, [pop!(ship.orientation)])
-                reverse!(ship.orientation)
-            end
-        end
-        "R" => begin
-            for steps in 1:(value / 90)
-                prepend!(ship.orientation, [pop!(ship.orientation)])
-            end
-        end
-        "F" => begin
-            (dx, dy) = Tuple(first(ship.orientation))
-            (sx, sy) = Tuple(ship.location)
-            ship.location = CartesianIndex(sx + (dx * value), sy + (dy * value))
-        end
-    end
-end
-
-function waypoint!(ship::Ship, instruction::String, value::Int)
-    @match instruction begin
-        "N" => begin ship.waypoint += CartesianIndex(0, value) end
-        "S" => begin ship.waypoint += CartesianIndex(0, -1 * value) end
-        "W" => begin ship.waypoint += CartesianIndex(value, 0) end
-        "E" => begin ship.waypoint += CartesianIndex(-1 * value, 0) end
-        "L" => begin
-            (wx, wy) = Tuple(ship.waypoint)
-            for steps in 1:(value / 90)
-                tmp = wx
-                wx = wy
-                wy = -1 * tmp
-            end
-            ship.waypoint = CartesianIndex(wx, wy)
-        end
-        "R" => begin
-            (wx, wy) = Tuple(ship.waypoint)
-            for steps in 1:(value / 90)
-                tmp = wy
-                wy = wx
-                wx = -1 * tmp
-            end
-            ship.waypoint = CartesianIndex(wx, wy)
-        end
-        "F" => begin
-            (wx, wy) = Tuple(ship.waypoint)
-            (sx, sy) = Tuple(ship.location)
-            v = CartesianIndex(wx * value, wy * value)
-            ship.location += v
-        end
+        "N", if ship.opmode == direct end => begin ship.location += [0, value] end
+        "S", if ship.opmode == direct end => begin ship.location += [0, -1 * value] end
+        "W", if ship.opmode == direct end => begin ship.location += [value, 0] end
+        "E", if ship.opmode == direct end => begin ship.location += [-1 * value, 0] end
+        "N", if ship.opmode == waypoint end => begin ship.waypoint += [0, value] end
+        "S", if ship.opmode == waypoint end => begin ship.waypoint += [0, -1 * value] end
+        "W", if ship.opmode == waypoint end => begin ship.waypoint += [value, 0] end
+        "E", if ship.opmode == waypoint end => begin ship.waypoint += [-1 * value, 0] end
+        "L" => begin ship.waypoint = lturn^(value / 90) * ship.waypoint end
+        "R" => begin ship.waypoint = rturn^(value / 90) * ship.waypoint end
+        "F" => begin ship.location += ship.waypoint * value end
     end
 end
 
 ship = Ship(
-    CartesianIndex(0, 0),
-    [CartesianIndex(0, -1), CartesianIndex(-1, 0), CartesianIndex(0, 1), CartesianIndex(1, 0)],
-    CartesianIndex(0, 0)
+    [-1, 0],
+    [0, 0],
+    direct
 )
 
-move!(ship, cmds, direct!)
+move!(ship, cmds)
 (fx, fy) = Tuple(ship.location)
 p1 = abs(fx) + abs(fy)
 
+
 ship = Ship(
-    CartesianIndex(-10, 1),
-    [],
-    CartesianIndex(0, 0)
+    [-10, 1],
+    [0, 0],
+    waypoint
 )
 
-move!(ship, cmds, waypoint!)
+move!(ship, cmds)
 (fx, fy) = Tuple(ship.location)
 p2 = abs(fx) + abs(fy)
 
-@assert(p1 == 323)
+@assert(p1 == 445)
 @assert(p2 == 42495)
 
 println("-----------------------------------------------------------------------")

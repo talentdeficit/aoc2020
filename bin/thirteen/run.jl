@@ -31,8 +31,8 @@ end
 
 function solver(schedule)
     targets = busses(schedule)
-    (period, t) = first(targets)
-    for idx in 2:length(targets)
+    (period, t) = (1, 0)
+    for idx in 1:length(targets)
         (candidate, offset) = targets[idx]
         while ((t + offset) % candidate != 0)
             t += period

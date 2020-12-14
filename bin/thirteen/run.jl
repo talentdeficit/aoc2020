@@ -6,27 +6,51 @@ example = readlines(sample)
 input = joinpath(@__DIR__, "input")
 lines = readlines(input)
 
-function depart(schedule)
-    now = parse(Int, schedule[1])
-    ids = map(id -> id == "x" ? missing : parse(Int, id), split(schedule[2], ","))
-    wait, id = minimum(map(id -> (mod(-1 * now, id), id), filter(!ismissing, ids)))
+function prepare(input)
+    now = parse(Int, input[1])
+    schedule = map(id -> id == "x" ? missing : parse(Int, id), split(input[2], ","))
+    return (now, schedule)
+end
+
+function busses(schedule)
+    return [(id, idx - 1) for (idx, id) in enumerate(schedule) if !ismissing(id)]
+end
+
+function ids(busses)
+    return first.(busses)
+end
+
+function offsets(busses)
+    return last.(busses)
+end
+
+function depart(now, schedule)
+    wait, id = minimum(map(id -> (mod(-1 * now, id), id), filter(!ismissing, schedule)))
     return id * wait
 end
 
-function contest(schedule)
-    ids = map(id -> id == "x" ? missing : parse(Int, id), split(schedule[2], ","))
-    ids = filter(pr -> !ismissing(pr[2]), map(pr -> (pr[1] - 1, pr[2]), enumerate(ids)))
-    n = []
-    a = []
-    mods = [Mod{id}(-1 * i) for (i, id) in ids]
-    return CRT(mods...).val
+function solver(schedule)
+    targets = busses(schedule)
+    (period, t) = first(targets)
+    for idx in 2:length(targets)
+        (candidate, offset) = targets[idx]
+        while ((t + offset) % candidate != 0)
+            t += period
+        end
+        period *= candidate
+    end
+    return t
 end
 
-@test depart(example) == 295
-@test contest(example) == 1068781
+(now, schedule) = prepare(example)
 
-p1 = depart(lines)
-p2 = contest(lines)
+@test depart(now, schedule) == 295
+@test solver(schedule) == 1068781
+
+(now, schedule) = prepare(lines)
+
+p1 = depart(now, schedule)
+p2 = solver(schedule)
 
 @assert(p1 == 104)
 @assert(p2 == 842186186521918)

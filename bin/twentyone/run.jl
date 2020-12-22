@@ -84,7 +84,7 @@ okay = setdiff(a, at)
 
 solved = solve(t)
 solved = collect(solved)
-sort!(solved, by=((k, _),) -> k)
+sort!(solved, by=(kv -> first(kv)))
 
 p1 = count_okay(dishes, okay)
 p2 = join([v for (_, v) in solved], ",")

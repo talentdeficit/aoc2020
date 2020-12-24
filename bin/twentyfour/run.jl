@@ -8,22 +8,22 @@ function chart(hexes)
         dest = CartesianIndex(0, 0)
         while i <= length(hex)
             if hex[i:i] == "e"
-                dest += CartesianIndex(2, 0)
+                dest += CartesianIndex(1, 0)
                 i += 1
             elseif hex[i:i] == "w"
-                dest += CartesianIndex(-2, 0)
+                dest += CartesianIndex(-1, 0)
                 i += 1
             elseif hex[i:i + 1] == "nw"
-                dest += CartesianIndex(-1, 2)
+                dest += CartesianIndex(0, -1)
                 i += 2
             elseif hex[i:i + 1] == "sw"
-                dest += CartesianIndex(-1, -2)
+                dest += CartesianIndex(-1, 1)
                 i += 2
             elseif hex[i:i + 1] == "ne"
-                dest += CartesianIndex(1, 2)
+                dest += CartesianIndex(1, -1)
                 i += 2
             elseif hex[i:i + 1] == "se"
-                dest += CartesianIndex(1, -2)
+                dest += CartesianIndex(0, 1)
                 i += 2
             end
         end
@@ -42,12 +42,12 @@ end
 
 function adjacent(hex)
      adj = [
-         CartesianIndex(2, 0),
-         CartesianIndex(-2, 0),
-         CartesianIndex(-1, 2),
-         CartesianIndex(1, 2),
-         CartesianIndex(-1, -2),
-         CartesianIndex(1, -2)
+         CartesianIndex(1, 0),
+         CartesianIndex(-1, 0),
+         CartesianIndex(0, -1),
+         CartesianIndex(-1, 1),
+         CartesianIndex(1, -1),
+         CartesianIndex(0, 1)
      ]
      return map(a -> hex + a, adj)
 end
